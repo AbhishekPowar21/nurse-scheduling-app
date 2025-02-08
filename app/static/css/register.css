@@ -241,3 +241,66 @@ p a:hover {
   display: block;
 }
 
+/* General button styles */
+button {
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* Disabled button styles */
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Submit OTP Button styles */
+.submit-otp-btn {
+  background-color: #28a745; /* Green color */
+  font-size: 16px;
+  padding: 10px 20px;
+}
+
+.submit-otp-btn:hover {
+  background-color: #218838;
+}
+
+.submit-otp-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* OTP Verified Style */
+.submit-otp-btn.verified {
+  background-color: #17a2b8; /* Blue color for verified state */
+  color: white;
+}
+
+.submit-otp-btn.verified:hover {
+  background-color: #138496;
+  cursor: default;
+}
+
+/* Timer and OTP Error styling */
+#timer {
+  font-size: 14px;
+  color: #28a745;
+  margin-top: 10px;
+}
+
+.form-error {
+  font-size: 14px;
+  color: #dc3545;
+  display: block;
+  margin-top: 5px;
+}

@@ -39,23 +39,30 @@
         </div>
         <div class="form-group">
           <button type="button" id="sendOtpBtn" class="send-otp-btn" onclick="sendOtp()"
-            style="margin-right: 0px; margin-left: 17px;">Send
-            OTP</button>
+            style="margin-right: 0px; margin-left: 17px;" required>Send
+            OTP </button>
 
         </div>
+
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
           <!-- Initially hidden OTP input field -->
           <div id="otpInputContainer" style="display: none; padding: auto; margin: auto;">
             <label for="otp">Enter OTP:</label>
             <input type="text" id="otp" name="otp" placeholder="Enter OTP " required>
             <span class="form-error" id="otpError"></span>
-            <button type="button" id="submitOtpBtn" class="submit-otp-btn" onclick="submitOtp()">Submit
-              OTP</button>
-            <div id="timer" style="font-size: 13px; color: green;"></div>
           </div>
         </div>
-      </div>
+        <div class="form-group">
+          <button type="button" id="submitOtpBtn" class="submit-otp-btn" onclick="submitOtp()"
+            style="display: none;margin-top: 26px;">Submit
+            OTP</button>
+          <div id="timer" style="font-size: 14px; color: green;"></div>
+        </div>
 
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label for="password">Password:</label>
@@ -184,11 +191,6 @@
     hospitalNameInput.addEventListener('blur', validateHospitalName);
     termsCheckbox.addEventListener('change', validateTerms);
 
-    form.addEventListener('submit', (e) => {
-      if (!validateForm()) {
-        e.preventDefault();
-      }
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
       const flashMessages = document.querySelectorAll('.flash-message');
@@ -208,13 +210,15 @@
       }, 1000);
     }
 
-
+    let otpVerified = false; // Flag to track OTP verification
+    let otpRequested = false; // Flag to track OTP verification
     function sendOtp() {
       const email = document.getElementById('email').value;
       const sendOtpBtn = document.getElementById('sendOtpBtn');
       const otpInputContainer = document.getElementById('otpInputContainer'); // Get the OTP input container
       const timerElement = document.getElementById('timer');
-      let countdown = 30;  // 30 seconds timer
+      const submitOtpBtn = document.getElementById('submitOtpBtn');
+      let countdown = 45;  // 30 seconds timer
 
       if (email.trim() === "") {
         alert("Please enter a valid email.");
@@ -247,12 +251,14 @@
             })
           }).then(response => {
             if (response.ok) {
+              otpRequested = true;
               document.getElementById('otp').value = '';  // Clear OTP field
 
               sendOtpBtn.textContent = 'Resend OTP';  // Change button text to Resend OTP
 
               // Enable the OTP input field after OTP is sent
               otpInputContainer.style.display = 'block';  // Make OTP input visible
+              submitOtpBtn.style.display = 'block';  // Make OTP input visible
 
               // Show success message
               let flashMessagesContainer = document.getElementById('flash-messages');
@@ -297,7 +303,6 @@
           console.error('Error checking email:', error);
         });
     }
-
     function submitOtp() {
       const otpInputField = document.getElementById('otp');
       const otpError = document.getElementById('otpError');
@@ -309,52 +314,53 @@
       }
 
       // Send OTP to Flask for verification using form data (application/x-www-form-urlencoded)
-      fetch("/auth/register", {
+      fetch("/auth/verify_otp", {  // Change URL to /auth/verify_otp for OTP verification
         method: "POST",
-        body: new URLSearchParams({ 'otp': otp })  // Make sure 'otp' is passed correctly here
+        body: new URLSearchParams({
+          'otp': otp  // Send OTP to backend for validation
+        })
       })
-
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            // OTP verified successfully, enable registration button
-            document.getElementById('registerBtn').disabled = false;
+            // OTP verified successfully, change button text to "Verified"
+            const submitOtpBtn = document.getElementById('submitOtpBtn');
+            submitOtpBtn.textContent = 'Verified';
 
-            // Flash success message
-            let flashMessagesContainer = document.getElementById('flash-messages');
-            if (!flashMessagesContainer) {
-              flashMessagesContainer = document.createElement('div');
-              flashMessagesContainer.id = 'flash-messages';
-              document.body.appendChild(flashMessagesContainer);
-            }
+            submitOtpBtn.style.backgroundColor = 'green'; // Change button color to green to indicate success
+            submitOtpBtn.disabled = true; // Disable the button to prevent further submissions
+            otpError.textContent = "";
 
-            const successMessage = document.createElement('div');
-            successMessage.classList.add('flash-message', 'success');
-            successMessage.textContent = data.message;  // "OTP verified successfully"
-            flashMessagesContainer.appendChild(successMessage);
-
-            setTimeout(() => {
-              successMessage.style.transition = 'opacity 0.5s';
-              successMessage.style.opacity = '0';
-              setTimeout(() => successMessage.remove(), 500);
-            }, 5000);
-
+            otpVerified = true; // Flag to track OTP verification
           } else {
             // OTP is incorrect, show error message
             otpError.textContent = data.message;  // "Invalid OTP"
-            document.getElementById('registerBtn').disabled = true;  // Keep the register button disabled
-
-            // Clear OTP field after wrong OTP
-            otpInputField.value = '';
-
-            // Focus on OTP input for user to try again
-            otpInputField.focus();
+            otpInputField.value = ''; // Clear OTP field
+            otpInputField.focus(); // Focus on OTP field for user to re-enter OTP
           }
         })
         .catch(error => {
           alert("Error verifying OTP. Please try again.");
         });
     }
+
+    form.addEventListener('submit', (e) => {
+      if (!validateForm()) {
+        e.preventDefault();
+      }
+      // Check if OTP is visible before validating the OTP field
+      const otpInputField = document.getElementById('otp');
+      if (otpInputField.style.display !== 'none' && !otpRequested) {
+        e.preventDefault();  // Prevent form submission
+        alert('Please click the "Send OTP" button first.');
+        return;
+      }
+
+      if (!otpVerified) { // Check if OTP is verified
+        e.preventDefault(); // Prevent form submission if OTP is not verified
+        alert('Please verify the OTP first.');
+      }
+    });
 
   </script>
 </body>

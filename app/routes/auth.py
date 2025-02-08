@@ -52,29 +52,34 @@ def register():
         # Establish database connection
         connection = get_db_connection()
         cursor = connection.cursor()
-
-        try:
+         
+        
             # Check if the email is already registered
-            cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
-            existing_user = cursor.fetchone()
+        cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
+        existing_user = cursor.fetchone()
 
-            if existing_user:
+        if existing_user:
                 flash('Email is already registered!', 'error')
                 return redirect(url_for('auth.register'))
 
             # Generate OTP and send email
-            otp = generate_otp()
-            otp_sent = send_otp_email(email, otp)
+        otp = generate_otp()
+        otp_sent = send_otp_email(email, otp)
 
-            if otp_sent:
+        if otp_sent:
                 # flash(f"OTP sent to {email}. Please check your inbox.", 'info')
                 session['otp'] = otp  # Store OTP in session for later validation
                 session['email'] = email  # Store email in session
-                return redirect(url_for('auth.register'))  # Redirect to OTP verification page
+                
 
-            flash('Failed to send OTP. Please try again.', 'error')
-            return redirect(url_for('auth.register'))
-
+            # flash('Failed to send OTP. Please try again.', 'error')
+            # return redirect(url_for('auth.register'))
+        try:
+            cursor.execute('INSERT INTO hospital_admin (name, email, password, hospital_name, hospital_address) VALUES (%s, %s, %s, %s, %s)',
+                           (name, email, password, hospital_name, hospital_address))
+            connection.commit()
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('auth.login'))
         except Exception as e:
             print(f"Error: {e}")
             flash('An error occurred during registration. Please try again.', 'error')
@@ -86,6 +91,23 @@ def register():
             connection.close()
 
     return render_template('auth/register.html')
+
+
+# Route to verify OTP
+@auth_bp.route('/verify_otp', methods=['POST'])
+def verify_otp():
+    entered_otp = request.form.get('otp')
+    session_otp = session.get('otp')
+
+    if not session_otp:
+        return jsonify({'success': False, 'message': 'OTP expired. Please request a new one.'})
+
+    if entered_otp == str(session_otp):
+        # OTP is correct, update the session or any other necessary state
+        return jsonify({'success': True, 'message': 'OTP verified successfully.'})
+    else:
+        # OTP is incorrect
+        return jsonify({'success': False, 'message': 'Invalid OTP. Please try again.'})
 
 
 # Route to check if the email is already registered for sent OTP button
