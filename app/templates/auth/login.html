@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flash-messages">
+  {% for category, message in messages %}
+  <div class="flash-message {{ category }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<body>
+  <div class="container">
+    <div class="form-container">
+      <h2>Login</h2>
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="form-row">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+        <div class="form-row">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <div class="form-row remember">
+          <label>
+            <input type="checkbox" name="remember"> Remember Me
+          </label>
+        </div>
+        <div class="form-row">
+          <button type="submit" class="login-button">Login</button>
+        </div>
+        <div class="form-row register-link">
+          <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach((message) => {
+        setTimeout(() => {
+          message.style.transition = 'opacity 0.5s';
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 500);
+        }, 5000);
+      });
+    });
+
+  </script>
+
+
+</body>
+
+</html>

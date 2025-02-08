@@ -1,0 +1,138 @@
+<!-- templates/admin/edit_admin_info.html -->
+
+
+{% block content %}
+<h2>Edit Your Information</h2>
+
+<form method="POST" action="{{ url_for('admin.edit_admin_info') }}">
+  <div class="form-group">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" class="form-control" value="{{ admin_info[0] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" class="form-control" value="{{ admin_info[1] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="hospital_name">Hospital Name:</label>
+    <input type="text" id="hospital_name" name="hospital_name" class="form-control" value="{{ admin_info[2] }}"
+      required>
+  </div>
+
+  <div class="form-group">
+    <label for="hospital_address">Hospital Address:</label>
+    <textarea id="hospital_address" name="hospital_address" class="form-control" rows="4"
+      required>{{ admin_info[3] }}</textarea>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
+
+<a href="{{ url_for('admin.admin_homepage') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+
+<!-- Custom CSS for the Edit Admin Info Page -->
+<style>
+  body {
+    background-color: #f4f7fa;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h2 {
+    text-align: center;
+    margin-top: 30px;
+    color: #333;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    text-decoration: none;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+
+  .mt-3 {
+    margin-top: 20px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 1rem;
+  }
+
+  .form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-container h2 {
+    margin-bottom: 20px;
+  }
+
+  .form-container label {
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .form-container .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    margin-top: 10px;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2>Nurse List</h2>
+<ul>
+  {% for nurse in nurses %}
+  <li>{{ nurse.name }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

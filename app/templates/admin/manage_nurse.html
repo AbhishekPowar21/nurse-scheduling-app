@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Nurses</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_nurse.css') }}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+  <h1>Manage Nurses</h1>
+
+  <!-- Search and Filter Form -->
+  <form method="POST" action="{{ url_for('admin.manage_nurses') }}">
+    <input type="text" name="search" placeholder="Search by name or email">
+    <select name="filter_category">
+      <option value="">All Categories</option>
+      <option value="Senior">Senior</option>
+      <option value="Junior">Junior</option>
+      <option value="Head">Head</option>
+    </select>
+    <button type="submit">Search</button>
+  </form>
+
+  <!-- Nurse Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Shift Preference</th>
+        <th>Sleep Hours</th>
+        <th>Category</th>
+        <th>Department</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nurse in nurses %}
+      <tr>
+        <td>{{ nurse[2] }}</td> <!-- Assuming column 2 is name -->
+        <td>{{ nurse[3] }}</td> <!-- Assuming column 3 is email -->
+        <td>{{ nurse[4] }}</td> <!-- Assuming column 4 is phone -->
+        <td>{{ nurse[5] }}</td> <!-- Assuming column 5 is shift preference -->
+        <td>{{ nurse[6] }}</td> <!-- Assuming column 6 is sleep hours -->
+        <td>{{ nurse[7] }}</td> <!-- Assuming column 7 is category -->
+        <td>{{ nurse[8] }}</td> <!-- Assuming column 8 is department -->
+        <td>{{ nurse[9] }}</td> <!-- Assuming column 9 is status -->
+        <td>
+          <div class="action-buttons">
+            <form method="POST" action="{{ url_for('admin.edit_nurse', nurse_id=nurse[0]) }}">
+              <button type="submit">Edit</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin.delete_nurse', nurse_id=nurse[0]) }}">
+              <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Add Nurse Form -->
+  <h2>Add New Nurse</h2>
+  <form method="POST" action="{{ url_for('admin.add_nurse') }}">
+    <!-- Name -->
+    <input type="text" name="name" placeholder="Name" required>
+
+    <!-- Email -->
+    <input type="email" name="email" placeholder="Email" required>
+
+    <!-- Phone (10 digits mandatory) -->
+    <input type="text" name="phone" placeholder="Phone" required pattern="\d{10}" maxlength="10" minlength="10"
+      title="Phone number must be 10 digits">
+
+    <!-- Shift Preference (Dropdown) -->
+    <select name="shift_preference" required>
+      <option value="Morning">Morning</option>
+      <option value="Afternoon">Afternoon</option>
+      <option value="Night">Night</option>
+    </select>
+
+    <!-- Sleep Hours -->
+    <input type="number" name="sleep_hours" placeholder="Sleep Hours">
+
+    <!-- Department -->
+    <input type="text" name="department" placeholder="Department" required>
+
+    <!-- Category -->
+    <select name="category" required>
+      <option value="Senior">Senior</option>
+      <option value="Junior">Junior</option>
+      <option value="Head">Head</option>
+    </select>
+
+    <button type="submit">Add Nurse</button>
+  </form>
+
+</body>
+
+</html>

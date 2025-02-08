@@ -1,0 +1,33 @@
+project_root/
+│
+├── app/                     # Main app folder
+│   ├── __init__.py          # App initialization and blueprint registration
+│   ├── config.py            # Application configuration
+│   ├── scheduler.py         # Scheduler-related logic (e.g., Genetic Algorithm)
+│   ├── routes.py            # All Flask routes (authentication, admin, schedule)
+│   ├── static/              # Static files (CSS, JS, images)
+│   │   ├── css/
+│   │   │   ├── admin.css    # Admin-specific styles
+│   │   │   ├── login.css    # Login page styles
+│   │   │   └── style.css    # General styles
+│   │   ├── js/
+│   │   │   └── main.js      # General JavaScript functions
+│   │   ├── images/
+│   │   │   └── hospital_logo.png
+│   ├── templates/           # HTML templates
+│   │   ├── base.html        # Base layout for consistency
+│   │   ├── login.html       # Login page
+│   │   ├── register.html    # Registration page
+│   │   ├── admin_home.html  # Admin homepage
+│   │   ├── manage_nurses.html # Manage nurses page
+│   │   └── schedule.html    # Schedule management page
+│
+├── database/                # Database folder
+│   ├── __init__.py          # Database connection initialization
+│   ├── config.py            # Database configuration details
+│   ├── app.py               # Main database logic (CRUD operations, queries)
+│           
+│
+├── app.py                   # Main application entry point
+├── requirements.txt         # Dependencies list (Flask, MySQL connector, etc.)
+

@@ -1,0 +1,537 @@
+register.html
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session,jsonify
+from database import get_db_connection # Utility for database connection
+
+# Blueprint for authentication routes
+auth_bp = Blueprint('auth', __name__)
+
+# Helper function to send email
+def send_otp_email(email, otp):
+
+sender_email = "abpo44580@gmail.com" # Replace with your email
+sender_password = "almudpaqmcnjheti" # Replace with your email password or app-specific password
+
+# Create message
+subject = "Your OTP Code"
+body = f"Your OTP code is: {otp}"
+
+message = MIMEMultipart()
+message["From"] = sender_email
+message["To"] = email
+message["Subject"] = subject
+message.attach(MIMEText(body, "plain"))
+
+# Send the email
+try:
+with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+server.login(sender_email, sender_password)
+server.sendmail(sender_email, email, message.as_string())
+
+
+except Exception as e:
+print(f"Error sending email: {e}")
+return False
+
+return True
+
+# Function to generate OTP
+def generate_otp():
+return random.randint(100000, 999999)
+
+
+
+# Route for registration
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+if request.method == 'POST':
+name = request.form.get('name')
+email = request.form.get('email')
+password = request.form.get('password')
+hospital_name = request.form.get('hospital_name')
+hospital_address = request.form.get('hospital_address')
+
+# Establish database connection
+connection = get_db_connection()
+cursor = connection.cursor()
+
+try:
+# Check if the email is already registered
+cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
+existing_user = cursor.fetchone()
+
+if existing_user:
+flash('Email is already registered!', 'error')
+return redirect(url_for('auth.register'))
+
+# Generate OTP and send email
+otp = generate_otp()
+otp_sent = send_otp_email(email, otp)
+
+if otp_sent:
+# flash(f"OTP sent to {email}. Please check your inbox.", 'info')
+session['otp'] = otp # Store OTP in session for later validation
+session['email'] = email # Store email in session
+return redirect(url_for('auth.register')) # Redirect to OTP verification page
+
+flash('Failed to send OTP. Please try again.', 'error')
+return redirect(url_for('auth.register'))
+
+except Exception as e:
+print(f"Error: {e}")
+flash('An error occurred during registration. Please try again.', 'error')
+return redirect(url_for('auth.register'))
+
+finally:
+# Close database resources
+cursor.close()
+connection.close()
+
+return render_template('auth/register.html')
+
+
+# Route to check if the email is already registered for sent otp button
+
+@auth_bp.route('/check_email', methods=['POST'])
+def check_email():
+email = request.form.get('email')
+
+# Establish database connection
+connection = get_db_connection()
+cursor = connection.cursor()
+
+try:
+# Check if the email is already registered
+cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
+existing_user = cursor.fetchone()
+
+if existing_user:
+# Return JSON response indicating the email is already registered
+return jsonify({'exists': True})
+else:
+# Return JSON response indicating the email is not registered
+return jsonify({'exists': False})
+
+except Exception as e:
+print(f"Error: {e}")
+return jsonify({'exists': False})
+
+finally:
+# Close database resources
+cursor.close()
+connection.close()
+
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+print(f"Before login check, session: {session}") # Debugging session before login
+if 'user_id' in session:
+flash('You are already logged in!', 'info')
+return redirect(url_for('admin.admin_homepage')) # Redirect if already logged in
+
+if request.method == 'POST':
+email = request.form.get('email')
+password = request.form.get('password')
+
+# Database connection
+connection = get_db_connection()
+cursor = connection.cursor()
+
+# Retrieve user from the database
+cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
+user = cursor.fetchone()
+
+# Validate user credentials
+if user and user[3] == password: # Compare passwords directly (no hashing)
+# Clear any existing session data (for example, in case the user is logging in again)
+session.clear() # Clears all session data
+session['user_id'] = user[0] # Set session data
+session['user_name'] = user[1]
+session['hospital_name'] = user[4]
+session.permanent = True # Make the session permanent (to apply the 20-minute expiry)
+return redirect(url_for('admin.admin_homepage')) # Redirect to admin homepage
+
+flash('Invalid email or password!', 'error')
+cursor.close()
+connection.close()
+return redirect(url_for('auth.login'))
+
+return render_template('auth/login.html')
+
+
+@auth_bp.route('/logout')
+def logout():
+session.clear() # Clear session data
+session.modified = True # Ensure the session is modified to reflect the changes
+flash('You have been logged out.', 'success')
+return redirect(url_for('auth.login')) # Redirect to the home page after logout
+
+auth.py
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="form-container">
+
+        <h2>Registration</h2>
+        <form id="registerForm" method="POST" action="{{ url_for('auth.register') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                    <span class="form-error" id="nameError"></span>
+                </div>
+
+
+
+            </div>
+            <div id="form-row">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required
+                        style="width: 220px;">
+                </div>
+                <div class="form-group">
+                    <button type="button" id="sendOtpBtn" class="send-otp-btn" onclick="sendOtp()"
+                        style="margin-right: 0px; margin-left: 17px;">Send
+                        OTP</button>
+                    <span class="form-error" id="emailError"></span>
+                </div>
+                <div class="form-group">
+                    <!-- Initially hidden OTP input field -->
+                    <div id="otpInputContainer" style="display: none; padding: auto; margin: auto;">
+                        <label for="otp">Enter OTP:</label>
+                        <input type="text" id="otp" name="otp" placeholder="Enter OTP " required>
+                        <span class="form-error" id="otpError"></span>
+                        <button type="button" id="submitOtpBtn" class="submit-otp-btn" onclick="submitOtp()">Submit
+                            OTP</button>
+                        <div id="timer" style="font-size: 13px; color: green;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <span class="form-error" id="passwordError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password"
+                        placeholder="Re-enter your password" required>
+                    <span class="form-error" id="confirmPasswordError"></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="hospital_name">Hospital Name:</label>
+                    <input type="text" id="hospital_name" name="hospital_name" placeholder="Enter your hospital name"
+                        required>
+                    <span class="form-error" id="hospitalNameError"></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="hospital_address">Hospital Address:</label>
+                    <input type="text" id="hospital_address" name="hospital_address"
+                        placeholder="Enter your hospital address">
+                    <span class="form-error" id="hospitalAddressError"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="termsCheckbox" name="terms"> I agree to the Terms and Conditions
+                </label>
+                <span class="form-error" id="termsError"></span>
+            </div>
+            <button type="submit" class="submit-btn">Register</button>
+        </form>
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const hospitalNameInput = document.getElementById('hospital_name');
+        const termsCheckbox = document.getElementById('termsCheckbox');
+
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const hospitalNameError = document.getElementById('hospitalNameError');
+        const termsError = document.getElementById('termsError');
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        function validateName() {
+            if (nameInput.value.trim().length < 3) {
+                nameError.textContent = 'Name must be at least 3 characters long.';
+                return false;
+            }
+            nameError.textContent = '';
+            return true;
+        }
+
+        function validateEmail() {
+            if (!emailRegex.test(emailInput.value.trim())) {
+                emailError.textContent = 'Enter a valid email address.';
+                return false;
+            }
+            emailError.textContent = '';
+            return true;
+        }
+
+        function validatePassword() {
+            if (passwordInput.value.trim().length < 8) {
+                passwordError.textContent = 'Password must be at least 8 characters long.';
+                return false;
+            }
+            passwordError.textContent = '';
+            return true;
+        }
+
+        function validateConfirmPassword() {
+            if (confirmPasswordInput.value.trim() !== passwordInput.value.trim()) {
+                confirmPasswordError.textContent = 'Passwords do not match.';
+                return false;
+            }
+            confirmPasswordError.textContent = '';
+            return true;
+        }
+
+        function validateHospitalName() {
+            if (hospitalNameInput.value.trim() === '') {
+                hospitalNameError.textContent = 'Hospital Name is required.';
+                return false;
+            }
+            hospitalNameError.textContent = '';
+            return true;
+        }
+
+        function validateTerms() {
+            if (!termsCheckbox.checked) {
+                termsError.textContent = 'You must agree to the terms and conditions.';
+                return false;
+            }
+            termsError.textContent = '';
+            return true;
+        }
+
+        function validateForm() {
+            const isNameValid = validateName();
+            const isEmailValid = validateEmail();
+            const isPasswordValid = validatePassword();
+            const isConfirmPasswordValid = validateConfirmPassword();
+            const isHospitalNameValid = validateHospitalName();
+            const isTermsValid = validateTerms();
+
+            return isNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && isHospitalNameValid && isTermsValid;
+        }
+
+        nameInput.addEventListener('blur', validateName);
+        emailInput.addEventListener('blur', validateEmail);
+        passwordInput.addEventListener('blur', validatePassword);
+        confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
+        hospitalNameInput.addEventListener('blur', validateHospitalName);
+        termsCheckbox.addEventListener('change', validateTerms);
+
+        form.addEventListener('submit', (e) => {
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach((message) => {
+                setTimeout(() => {
+                    message.style.transition = 'opacity 0.5s';
+                    message.style.opacity = '0';
+                    setTimeout(() => message.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        const successMessage = document.querySelector('.flash-message.success');
+        if (successMessage) {
+            setTimeout(() => {
+                window.location.href = "{{ url_for('auth.login') }}";
+            }, 1000);
+        }
+
+
+        function sendOtp() {
+            const email = document.getElementById('email').value;
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const otpInputContainer = document.getElementById('otpInputContainer'); // Get the OTP input container
+            const timerElement = document.getElementById('timer');
+            let countdown = 30;  // 30 seconds timer
+
+            if (email.trim() === "") {
+                alert("Please enter a valid email.");
+                return;
+            }
+
+            // First, check if the email is already registered
+            fetch("/auth/check_email", {
+                method: "POST",
+                body: new URLSearchParams({
+                    'email': email
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        // If email is already registered, show an alert
+                        alert("This email is already registered. Please use a different email.");
+                        return;
+                    }
+
+                    // If email is not registered, proceed with sending OTP
+                    sendOtpBtn.textContent = 'Sending...';
+
+                    // Send a request to the Flask route to send OTP
+                    fetch("/auth/register", {
+                        method: "POST",
+                        body: new URLSearchParams({
+                            'email': email
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            document.getElementById('otp').value = '';  // Clear OTP field
+
+                            sendOtpBtn.textContent = 'Resend OTP';  // Change button text to Resend OTP
+
+                            // Enable the OTP input field after OTP is sent
+                            otpInputContainer.style.display = 'block';  // Make OTP input visible
+
+                            // Show success message
+                            let flashMessagesContainer = document.getElementById('flash-messages');
+                            if (!flashMessagesContainer) {
+                                flashMessagesContainer = document.createElement('div');
+                                flashMessagesContainer.id = 'flash-messages';
+                                document.body.appendChild(flashMessagesContainer);
+                            }
+
+                            const successMessage = document.createElement('div');
+                            successMessage.classList.add('flash-message', 'info');
+                            successMessage.textContent = 'OTP has been sent successfully. Please check your inbox.';
+                            flashMessagesContainer.appendChild(successMessage);
+
+                            setTimeout(() => {
+                                successMessage.style.transition = 'opacity 0.5s';
+                                successMessage.style.opacity = '0';
+                                setTimeout(() => successMessage.remove(), 500);
+                            }, 5000);
+
+                            // Disable the "Send OTP" button after it's clicked to prevent multiple requests
+                            sendOtpBtn.disabled = true;
+
+                            // Start the countdown timer
+                            const timerInterval = setInterval(() => {
+                                timerElement.textContent = `Resend OTP in ${countdown} seconds`;
+                                countdown--;
+                                if (countdown < 0) {
+                                    clearInterval(timerInterval);
+                                    timerElement.textContent = 'You can now resend OTP.';
+                                    sendOtpBtn.disabled = false;  // Enable the "Resend OTP" button
+                                    document.getElementById('otp').value = '';  // Clear OTP field
+                                }
+                            }, 1000);
+
+                        } else {
+                            alert("Failed to send OTP. Try again.");
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error checking email:', error);
+                });
+        }
+
+        function submitOtp() {
+            const otpInputField = document.getElementById('otp');
+            const otpError = document.getElementById('otpError');
+            const otp = otpInputField.value.trim();  // Capture OTP entered by the user
+
+            if (otp === "") {
+                alert("Please enter the OTP.");
+                return;  // Exit if the OTP field is empty
+            }
+
+            // Send OTP to Flask for verification using form data (application/x-www-form-urlencoded)
+            fetch("/auth/verify-otp", {
+                method: "POST",
+                body: new URLSearchParams({ 'otp': otp })  // Make sure 'otp' is passed correctly here
+            })
+
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // OTP verified successfully, enable registration button
+                        document.getElementById('registerBtn').disabled = false;
+
+                        // Flash success message
+                        let flashMessagesContainer = document.getElementById('flash-messages');
+                        if (!flashMessagesContainer) {
+                            flashMessagesContainer = document.createElement('div');
+                            flashMessagesContainer.id = 'flash-messages';
+                            document.body.appendChild(flashMessagesContainer);
+                        }
+
+                        const successMessage = document.createElement('div');
+                        successMessage.classList.add('flash-message', 'success');
+                        successMessage.textContent = data.message;  // "OTP verified successfully"
+                        flashMessagesContainer.appendChild(successMessage);
+
+                        setTimeout(() => {
+                            successMessage.style.transition = 'opacity 0.5s';
+                            successMessage.style.opacity = '0';
+                            setTimeout(() => successMessage.remove(), 500);
+                        }, 5000);
+
+                    } else {
+                        // OTP is incorrect, show error message
+                        otpError.textContent = data.message;  // "Invalid OTP"
+                        document.getElementById('registerBtn').disabled = true;  // Keep the register button disabled
+
+                        // Clear OTP field after wrong OTP
+                        otpInputField.value = '';
+
+                        // Focus on OTP input for user to try again
+                        otpInputField.focus();
+                    }
+                })
+                .catch(error => {
+                    alert("Error verifying OTP. Please try again.");
+                });
+        }
+
+    </script>
+</body>
+
+</html>

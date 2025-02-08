@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <title>Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_homepage.css') }}">
+</head>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flash-messages">
+  {% for category, message in messages %}
+  <div class="flash-message {{ category }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo_item">
+      <i class="bx bx-menu" id="sidebarOpen"></i>
+      <p>{{session.get('hospital_name')}}</p>
+    </div>
+    <div class="navbar_content">
+      <i class="bx bx-bell"></i>
+      <img
+        src="https://media.istockphoto.com/id/1524913019/vector/hospital-building-vector-illustration-in-flat-style-design.jpg?s=612x612&w=0&k=20&c=WVl257GwZBvckU_e5SNu0CCG3gL9EbCMZPwINLcxdj4="
+        alt="" class="profile" />
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="menu_content">
+      <ul class="menu_items">
+        <li class="item">
+          <a href="#" class="nav_link" onclick="loadContent('dashboard')">
+            <span class="navlink_icon"><i class="bx bx-home-alt"></i></span>
+            <span class="navlink">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Manage Nurse -->
+        <li class="item">
+          <a href="#" class="nav_link" onclick="loadContent('manageNurse')">
+            <span class="navlink_icon"><i class="bx bx-user"></i></span>
+            <span class="navlink">Manage Nurse</span>
+          </a>
+        </li>
+
+        <li class="item">
+          <a href="#" class="nav_link" onclick="loadContent('schedule')">
+            <span class="navlink_icon"><i class="bx bx-calendar"></i></span>
+            <span class="navlink">Schedule</span>
+          </a>
+        </li>
+
+        <li class="item">
+          <a href="#" class="nav_link" onclick="loadContent('settings')">
+            <span class="navlink_icon"><i class="bx bx-cog"></i></span>
+            <span class="navlink">Setting</span>
+          </a>
+        </li>
+      </ul>
+      <li class="item logout">
+        <a href="{{ url_for('main.index') }}" class="nav_link">
+          <span class="navlink_icon"><i class="bx bx-log-out"></i></span>
+          <span class="navlink">Logout</span>
+        </a>
+      </li>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="content" id="contentArea">
+    <h1>Welcome {{ admin_name }}</h1>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    const sidebar = document.querySelector(".sidebar");
+    const sidebarOpen = document.querySelector("#sidebarOpen");
+
+    sidebarOpen.addEventListener("click", () => sidebar.classList.toggle("close"));
+
+    function loadContent(page) {
+      const contentArea = document.getElementById("contentArea");
+
+      if (page === "dashboard") {
+        // Fetch Dashboard content dynamically
+        fetch('/admin/admin_dashboard')
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to load Dashboard content');
+            return response.text();
+          })
+          .then(html => {
+            contentArea.innerHTML = html;
+            attachFormHandlers(); // Attach handlers for dynamically loaded forms/buttons
+          })
+          .catch(error => {
+            console.error(error);
+            contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
+          });
+      }
+      else if (page === "manageNurse") {
+        // Fetch Manage Nurse content dynamically
+        fetch('/admin/manage_nurses')
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to load Manage Nurse content');
+            return response.text();
+          })
+          .then(html => {
+            contentArea.innerHTML = html;
+            attachFormHandlers(); // Attach handlers for dynamically loaded forms/buttons
+          })
+          .catch(error => {
+            console.error(error);
+            contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
+          });
+      }
+      else if (page === "schedule") {
+        // Fetch Schedule content dynamically
+        fetch('/admin/generate_schedule')
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to load Schedule content');
+            return response.text();
+          })
+          .then(html => {
+            contentArea.innerHTML = html;
+            attachFormHandlers(); // Attach handlers for dynamically loaded forms/buttons
+          })
+          .catch(error => {
+            console.error(error);
+            contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
+          });
+      }
+      else if (page === "settings") {
+        // Fetch Settings content dynamically
+        fetch('/admin/edit_admin_info')
+          .then(response => {
+            if (!response.ok) throw new Error('Failed to load Settings content');
+            return response.text();
+          })
+          .then(html => {
+            contentArea.innerHTML = html;
+            attachFormHandlers(); // Attach handlers for dynamically loaded forms/buttons
+          })
+          .catch(error => {
+            console.error(error);
+            contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
+          });
+      }
+      else {
+        // Default content for other pages
+        contentArea.innerHTML = `<h1>${page.charAt(0).toUpperCase() + page.slice(1)}</h1><p>This is the ${page} page.</p>`;
+      }
+    }
+
+    function attachFormHandlers() {
+      // Handle dynamically loaded form submissions for Edit/Delete actions
+      const forms = document.querySelectorAll("form");
+      forms.forEach(form => {
+        form.addEventListener("submit", event => {
+          event.preventDefault(); // Prevent default form submission
+
+          const action = form.action;
+          const method = form.method;
+          const formData = new FormData(form);
+
+          fetch(action, {
+            method: method,
+            body: formData,
+          })
+            .then(response => {
+              if (!response.ok) throw new Error('Action failed');
+              return response.text();  // Expect HTML response
+            })
+            .then(html => {
+              document.getElementById("contentArea").innerHTML = html;
+              attachFormHandlers(); // Re-attach handlers after content update
+            })
+            .catch(error => console.error('Error:', error));
+        });
+      });
+    }
+
+    // Load initial dashboard content
+    document.addEventListener("DOMContentLoaded", () => loadContent("dashboard"));
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,215 @@
+General body styling
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f7fa;
+  margin: 0;
+  padding: 0;
+}
+
+/* Heading styling */
+h1 {
+  text-align: center;
+  font-size: 2.5em;
+  color: #1e3a8a; /* Dark blue */
+  margin: 20px 0;
+  padding: 15px 0; /* Padding for heading */
+}
+
+/* Search and Filter Form Styling */
+form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+form input[type="text"],
+form select {
+  padding: 8px; /* Reduced padding */
+  font-size: 14px; /* Reduced font size */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: box-shadow 0.2s;
+}
+
+/* Focus effect for search bar and category dropdown */
+form input[type="text"]:focus,
+form select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #3b82f6; /* Blue glow */
+  border-color: #3b82f6;
+}
+
+/* Search button styling */
+form button {
+  padding: 8px 16px; /* Reduced padding */
+  font-size: 14px; /* Reduced font size */
+  font-weight: bold;
+  color: white;
+  background-color: #3b82f6; /* Blue */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+form button:hover {
+  background-color: #2563eb; /* Darker blue */
+  transform: scale(1.05); /* Slight zoom */
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 0; /* Reset padding for the table itself */
+}
+
+/* Table Header Styling */
+th {
+  background-color: #3b82f6; /* Blue header */
+  color: white;
+  text-transform: uppercase;
+  padding: 7px 15px; /* Padding for table header */
+  text-align: left;
+}
+
+/* Table Body Styling */
+td {
+  padding: 1px 1px; /* Padding for table body cells */
+  text-align: left;
+  padding-left: 5px;
+}
+
+/* Border Styling for table */
+table, th, td {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Table Row Styling */
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #e5f3ff; /* Light blue hover effect */
+}
+
+/* Action Buttons Styling - Making them side by side */
+form button[type="submit"] {
+  font-size: 14px; /* Reduced font size */
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0px;
+  transition: background-color 0.2s, transform 0.2s;
+}
+.action-buttons {
+  display: flex;
+  gap: 5px; /* Adjust the gap between buttons */
+  justify-content: center; /* Center-align buttons horizontally */
+  align-items: center; /* Center-align buttons vertically */
+}
+
+.action-buttons form {
+  margin: 0; /* Remove default margin from forms */
+  padding: 0; /* Remove default padding from forms */
+}
+
+.action-buttons button {
+  padding: 5px 10px; /* Adjust button padding */
+  border: 1px solid #ccc; /* Add a light border */
+  background-color: #f4f4f4; /* Light gray background */
+  cursor: pointer;
+  border-radius: 4px; /* Rounded corners */
+}
+
+.action-buttons button:hover {
+  background-color: #ddd; /* Darker background on hover */
+}
+
+.action-buttons form:last-child button{
+  background-color: red;
+}
+.action-buttons form:last-child button:hover {
+  background-color: #e60000; /* Darker red on hover */
+}
+/* Add Nurse Form Styling */
+h2 {
+  text-align: center;
+  color: #1e3a8a; /* Dark blue */
+  font-size: 2em;
+  margin: 30px 0 10px;
+  padding: 10px 0; /* Padding for Add Nurse heading */
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="number"],
+form select {
+  width: 80%;
+  margin: 8px auto; /* Reduced margin */
+  padding: 8px; /* Smaller padding */
+  display: block;
+  font-size: 14px; /* Smaller font size */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: box-shadow 0.2s;
+}
+
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="number"]:focus,
+form select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #3b82f6; /* Blue glow */
+  border-color: #3b82f6;
+}
+
+form button[type="submit"] {
+  background-color: #10b981; /* Green for Add Nurse */
+  color: white;
+  margin: 10px auto;
+  display: block;
+  padding: 10px 20px;
+  font-size: 14px; /* Smaller font size */
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+form button[type="submit"]:hover {
+  background-color: #0f9b76; /* Darker green */
+  transform: scale(1.05);
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+  form {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  form input[type="text"],
+  form select {
+    width: 90%;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  /* Action buttons on small screens */
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px; /* Less gap between buttons */
+  }
+}
+
