@@ -10,7 +10,42 @@
 </head>
 
 <body>
-  <h1>Manage Nurses</h1>
+
+  <!-- Add Nurse Form -->
+  <h2>Add New Nurse</h2>
+  <form method="POST" action="{{ url_for('admin.add_nurse') }}">
+    <!-- Name -->
+    <input type="text" name="name" placeholder="Name" required>
+
+    <!-- Email -->
+    <input type="email" name="email" placeholder="Email" required>
+
+    <!-- Phone (10 digits mandatory) -->
+    <input type="text" name="phone" placeholder="Phone" required pattern="\d{10}" maxlength="10" minlength="10"
+      title="Phone number must be 10 digits">
+
+    <!-- Shift Preference (Dropdown) -->
+    <select name="shift_preference" required>
+      <option value="Morning">Morning</option>
+      <option value="Afternoon">Afternoon</option>
+      <option value="Night">Night</option>
+    </select>
+
+    <!-- Sleep Hours -->
+    <input type="number" name="sleep_hours" placeholder="Sleep Hours">
+
+    <!-- Department -->
+    <input type="text" name="department" placeholder="Department" required>
+
+    <!-- Category -->
+    <select name="category" required>
+      <option value="Senior">Senior</option>
+      <option value="Junior">Junior</option>
+      <option value="Head">Head</option>
+    </select>
+
+    <button type="submit">Add Nurse</button>
+  </form>
 
   <!-- Search and Filter Form -->
   <form method="POST" action="{{ url_for('admin.manage_nurses') }}">
@@ -65,41 +100,6 @@
     </tbody>
   </table>
 
-  <!-- Add Nurse Form -->
-  <h2>Add New Nurse</h2>
-  <form method="POST" action="{{ url_for('admin.add_nurse') }}">
-    <!-- Name -->
-    <input type="text" name="name" placeholder="Name" required>
-
-    <!-- Email -->
-    <input type="email" name="email" placeholder="Email" required>
-
-    <!-- Phone (10 digits mandatory) -->
-    <input type="text" name="phone" placeholder="Phone" required pattern="\d{10}" maxlength="10" minlength="10"
-      title="Phone number must be 10 digits">
-
-    <!-- Shift Preference (Dropdown) -->
-    <select name="shift_preference" required>
-      <option value="Morning">Morning</option>
-      <option value="Afternoon">Afternoon</option>
-      <option value="Night">Night</option>
-    </select>
-
-    <!-- Sleep Hours -->
-    <input type="number" name="sleep_hours" placeholder="Sleep Hours">
-
-    <!-- Department -->
-    <input type="text" name="department" placeholder="Department" required>
-
-    <!-- Category -->
-    <select name="category" required>
-      <option value="Senior">Senior</option>
-      <option value="Junior">Junior</option>
-      <option value="Head">Head</option>
-    </select>
-
-    <button type="submit">Add Nurse</button>
-  </form>
 
 </body>
 

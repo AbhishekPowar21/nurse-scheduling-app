@@ -34,6 +34,28 @@ def send_otp_email(email, otp):
 
     return True
 
+# Helper function to send email
+def send_email(email, subject, body):
+    sender_email = "abpo44580@gmail.com"  # Replace with your email
+    sender_password = "almudpaqmcnjheti"  # Replace with your email password or app-specific password
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, email, message.as_string())
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+    return True
+
+8
 # Function to generate OTP
 def generate_otp():
     return random.randint(100000, 999999)
@@ -79,6 +101,11 @@ def register():
                            (name, email, password, hospital_name, hospital_address))
             connection.commit()
             flash('Registration successful! Please log in.', 'success')
+            # Send a welcome email after successful registration
+            welcome_subject = "Welcome to NurseNetX"
+            welcome_body = f"Dear {name},\n\nWelcome to NurseNetX, the Nurse Scheduling Software designed to make scheduling simple and healthcare better.\n\nWe are thrilled to have you on board!\n\nBest Regards,\nNurseNetX Team"
+            send_email(email, welcome_subject, welcome_body)
+
             return redirect(url_for('auth.login'))
         except Exception as e:
             print(f"Error: {e}")
@@ -145,9 +172,9 @@ def check_email():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     print(f"Before login check, session: {session}")  # Debugging session before login
-    if 'user_id' in session:
-        flash('You are already logged in!', 'info')
-        return redirect(url_for('admin.admin_homepage'))  # Redirect if already logged in
+    # if 'user_id' in session:
+    #     flash('You are already logged in!', 'info')
+    #     return redirect(url_for('admin.admin_homepage'))  # Redirect if already logged in
 
     if request.method == 'POST':
         email = request.form.get('email')

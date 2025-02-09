@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Nurse</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_nurse.css') }}">
+</head>
+
+<body>
+  <h1>Edit Nurse</h1>
+
+  <form method="POST" action="{{ url_for('admin.edit_nurse', nurse_id=nurse[0]) }}">
+    <!-- Name -->
+    <input type="text" name="name" value="{{ nurse[2] }}" placeholder="Name" required>
+
+    <!-- Email -->
+    <input type="email" name="email" value="{{ nurse[3] }}" placeholder="Email" required>
+
+    <!-- Phone -->
+    <input type="text" name="phone" value="{{ nurse[4] }}" placeholder="Phone" required pattern="\d{10}" maxlength="10"
+      minlength="10" title="Phone number must be 10 digits">
+
+    <!-- Shift Preference -->
+    <select name="shift_preference" required>
+      <option value="Morning" {% if nurse[5]=='Morning' %}selected{% endif %}>Morning</option>
+      <option value="Afternoon" {% if nurse[5]=='Afternoon' %}selected{% endif %}>Afternoon</option>
+      <option value="Night" {% if nurse[5]=='Night' %}selected{% endif %}>Night</option>
+    </select>
+
+    <!-- Sleep Hours -->
+    <input type="number" name="sleep_hours" value="{{ nurse[6] }}" placeholder="Sleep Hours">
+
+    <!-- Department -->
+    <input type="text" name="department" value="{{ nurse[8] }}" placeholder="Department" required>
+
+    <!-- Category -->
+    <select name="category" required>
+      <option value="Senior" {% if nurse[7]=='Senior' %}selected{% endif %}>Senior</option>
+      <option value="Junior" {% if nurse[7]=='Junior' %}selected{% endif %}>Junior</option>
+      <option value="Head" {% if nurse[7]=='Head' %}selected{% endif %}>Head</option>
+    </select>
+
+    <!-- Status -->
+    <select name="status" required>
+      <option value="Active" {% if nurse[9]=='Active' %}selected{% endif %}>Active</option>
+      <option value="Inactive" {% if nurse[9]=='Inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+
+    <button type="submit">Save Changes</button>
+  </form>
+
+  <a href="#" onclick="loadContent('manageNurse')">Back to Nurse List</a> <!-- Use loadContent to load nurse list -->
+</body>
+
+</html>

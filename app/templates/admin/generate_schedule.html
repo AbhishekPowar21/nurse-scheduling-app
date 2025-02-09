@@ -2,81 +2,106 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generate Schedule</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/generate_schedule.css') }}" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Nurse Schedule</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 8px 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    .shift-entry {
+      background-color: #e0f7fa;
+      margin: 5px 0;
+      padding: 5px;
+    }
+
+    .shift-time {
+      font-weight: bold;
+    }
+
+    button {
+      background-color: #4CAF50;
+      /* Green background */
+      color: white;
+      /* White text */
+      border: none;
+      /* Remove border */
+      padding: 10px 20px;
+      /* Padding around the text */
+      text-align: center;
+      /* Center the text */
+      text-decoration: none;
+      /* Remove underline */
+      display: inline-block;
+      /* Align inline */
+      font-size: 16px;
+      /* Font size */
+      margin: 4px 2px;
+      /* Margin around the button */
+      cursor: pointer;
+      /* Pointer cursor on hover */
+      border-radius: 8px;
+      /* Rounded corners */
+      transition: background-color 0.3s ease;
+      /* Smooth background color change on hover */
+    }
+
+    button:hover {
+      background-color: #45a049;
+      /* Darker green when hovering */
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Flash Messages -->
+  <h1>Generated Nurse Schedule</h1>
+
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
   <div id="flash-messages">
     {% for category, message in messages %}
-    <div class="flash-message {{ category }}">{{ message }}</div>
+    {# Skip any flash messages that are warnings #}
+    {% if category != 'warning' %}
+    <div class="flash-message {{ category }}">
+      <span>{{ message }}</span>
+      {% if category == 'success' %}
+      <button class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+      {% endif %}
+    </div>
+    {% endif %}
     {% endfor %}
   </div>
   {% endif %}
   {% endwith %}
 
-  <h1>Generate Nurse Schedule</h1>
-
-  <!-- Form for Constraints -->
-  <form action="{{ url_for('admin.generate_schedule') }}" method="POST">
-    <label for="category_filter">Category:</label>
-    <select name="category_filter" id="category_filter" required>
-      <option value="Senior">Senior</option>
-      <option value="Junior">Junior</option>
-      <option value="Head">Head</option>
-    </select>
-    <br><br>
-
-    <label for="num_nurses_per_shift">Number of Nurses per Shift:</label>
-    <input type="number" name="num_nurses_per_shift" id="num_nurses_per_shift" required>
-    <br><br>
-
-    <!-- Maximum Days per Week Constraint -->
-    <label for="max_days_per_week">Maximum Days per Week:</label>
-    <input type="number" name="max_days_per_week" id="max_days_per_week" required>
-    <br><br>
-
-    <!-- Shift Preference (Optional) -->
-    <label for="shift_preference">Shift Preference (Optional):</label>
-    <select name="shift_preference" id="shift_preference">
-      <option value="Any">Any</option>
-      <option value="Morning">Morning (08:00 AM - 04:00 PM)</option>
-      <option value="Afternoon">Afternoon (04:00 PM - 12:00 AM)</option>
-      <option value="Night">Night (12:00 AM - 08:00 AM)</option>
-    </select>
-    <br><br>
-
-    <!-- Shift Times -->
-    <label for="shift_time">Select Shift Times:</label><br>
-    <input type="checkbox" name="shift_time" value="08:00:00"> 08:00 AM - 04:00 PM<br>
-    <input type="checkbox" name="shift_time" value="16:00:00"> 04:00 PM - 12:00 AM<br>
-    <input type="checkbox" name="shift_time" value="00:00:00"> 12:00 AM - 08:00 AM<br><br>
-
+  <!-- Form to generate schedule (now includes an input for nurses per shift) -->
+  <form method="POST" action="{{ url_for('admin.generate_schedule') }}">
+    <label for="nurses_per_shift">Nurses per shift:</label>
+    <input type="number" name="nurses_per_shift" id="nurses_per_shift" min="1" value="1">
     <button type="submit">Generate Schedule</button>
   </form>
 
-  <!-- Display Generated Schedule -->
-  {% if schedule %}
-  <h2>Generated Schedule</h2>
-
-  <!-- Weekly Schedule Display -->
-  <div class="weekly-schedule">
-    {% for shift in ['08:00:00', '16:00:00', '00:00:00'] %}
-    <h3>
-      {% if shift == '08:00:00' %} Morning Shift
-      {% elif shift == '16:00:00' %} Afternoon Shift
-      {% else %} Night Shift
-      {% endif %}
-    </h3>
-    <table border="1">
+  <!-- Schedule container (shown if there is schedule data) -->
+  <div id="schedule-container" style="display:  display_style ;">
+    {% if schedule %}
+    <h2>Weekly Schedule</h2>
+    <table>
       <thead>
         <tr>
-          <th>Nurse Name</th>
+          <th>Shift</th>
           <th>Monday</th>
           <th>Tuesday</th>
           <th>Wednesday</th>
@@ -87,26 +112,34 @@
         </tr>
       </thead>
       <tbody>
-        {% for s in schedule %}
-        {% if s[3] == shift %}
+        {% for shift in ['8 AM to 4 PM', '4 PM to 12 AM', '12 AM to 8 AM'] %}
         <tr>
-          <td>{{ s[1] }}</td>
-          <td>{{ s[2] == 'Monday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Tuesday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Wednesday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Thursday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Friday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Saturday' and 'Scheduled' or '' }}</td>
-          <td>{{ s[2] == 'Sunday' and 'Scheduled' or '' }}</td>
+          <td class="shift-time">{{ shift }}</td>
+          {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+          <td>
+            {% for entry in schedule[day] %}
+            {% if entry.shift_end == shift %}
+            <div class="shift-entry">
+              <strong>{{ entry.nurse_name }}</strong><br>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
         </tr>
-        {% endif %}
         {% endfor %}
       </tbody>
     </table>
-    {% endfor %}
+    {% endif %}
   </div>
 
-  {% endif %}
+  <script>
+    // (Optional) JavaScript to toggle schedule display if needed.
+    function generateSchedule() {
+      var scheduleContainer = document.getElementById("schedule-container");
+      scheduleContainer.style.display = (scheduleContainer.style.display === "none" || scheduleContainer.style.display === "") ? "block" : "none";
+    }
+  </script>
 </body>
 
 </html>

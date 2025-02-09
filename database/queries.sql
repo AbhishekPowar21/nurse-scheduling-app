@@ -105,9 +105,7 @@ CREATE TABLE schedules (
     shift_day ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
     shift_start TIME NOT NULL,
     shift_end TIME NOT NULL,
-    break_start TIME,
-    break_end TIME,
-    backup_schedule BOOLEAN DEFAULT FALSE,
+    
     status ENUM('Scheduled', 'Backup', 'Pending') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

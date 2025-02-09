@@ -20,7 +20,7 @@ project_root/
 │   │   ├── register.html    # Registration page
 │   │   ├── admin_home.html  # Admin homepage
 │   │   ├── manage_nurses.html # Manage nurses page
-│   │   └── schedule.html    # Schedule management page
+│   │   └── generate_schedule.html    # Schedule management page
 │
 ├── database/                # Database folder
 │   ├── __init__.py          # Database connection initialization

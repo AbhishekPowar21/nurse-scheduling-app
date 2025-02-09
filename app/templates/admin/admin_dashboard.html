@@ -7,20 +7,131 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background-color: #007bff;
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 30%;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      font-size: 24px;
+    }
+
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .chart {
+      width: 700px;
+      height: 400px;
+      margin: 0 10px;
+    }
+  </style>
 </head>
 
 <body>
   <div class="container">
     <h1>Admin Dashboard</h1>
 
-    <!-- Total Nurses -->
+    <!-- Total Nurses, Active Nurses, Inactive Nurses -->
     <div class="stats">
-      <h3>Total Nurses: {{ total_nurses }}</h3>
-
+      <div class="stat-card">
+        <h3>Total Nurses: {{ total_nurses }}</h3>
+      </div>
+      <div class="stat-card">
+        <h3>Active Nurses: {{ active_nurses }}</h3>
+      </div>
+      <div class="stat-card">
+        <h3>Inactive Nurses: {{ inactive_nurses }}</h3>
+      </div>
     </div>
 
+    <!-- Category Breakdown (Bar Chart) -->
+    <div class="chart-container">
+      <div class="chart">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
 
-    </script>
+    <!-- Pass data as a hidden element -->
+    <div id="categoryData" style="display: none;">
+      {{ category_breakdown | tojson }}
+    </div>
+  </div>
+
+  <script>
+    // Retrieve the data from the hidden div and parse it
+    var categoryBreakdown = JSON.parse(document.getElementById('categoryData').innerText);
+
+    // Extract categories and counts
+    var categories = categoryBreakdown.map(item => item[0]);  // Extract categories
+    var counts = categoryBreakdown.map(item => item[1]);  // Extract counts
+
+    // Set up the chart
+    var ctx = document.getElementById('categoryChart').getContext('2d');
+    var categoryChart = new Chart(ctx, {
+      type: 'bar',  // Bar chart type
+      data: {
+        labels: categories,  // X-axis labels (categories)
+        datasets: [{
+          label: 'Nurses by Category',
+          data: counts,  // Data for each category
+          backgroundColor: '#007bff',
+          borderColor: '#0056b3',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,  // Ensure the Y-axis starts at 0
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false  // Hide the default legend
+          },
+          tooltip: {
+            callbacks: {
+              label: function (tooltipItem) {
+                return tooltipItem.label + ': ' + tooltipItem.raw + ' nurses';  // Customize tooltip
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+
 </body>
 
 </html>
