@@ -44,8 +44,11 @@ def admin_dashboard():
     inactive_nurses = cur.fetchone()[0]
 
     # Fetch category breakdown
-    cur.execute("SELECT category, COUNT(*) FROM nurses WHERE admin_id = %s GROUP BY category", (admin_id,))
+    cur.execute("SELECT department, COUNT(*) FROM nurses WHERE admin_id = %s GROUP BY department", (admin_id,))
     category_breakdown = cur.fetchall()  # This will be a list of tuples (e.g., [("Senior", 12), ("Junior", 10)])
+
+    cur.execute("SELECT category, COUNT(*) FROM nurses WHERE admin_id = %s GROUP BY category", (admin_id,))
+    category = cur.fetchall()  # This will be a list of tuples (e.g., [("Senior", 12), ("Junior", 10)])
 
     cur.close()
     conn.close()
@@ -56,6 +59,7 @@ def admin_dashboard():
         total_nurses=total_nurses,
         active_nurses=active_nurses,
          category_breakdown=category_breakdown,
+         category=category,
         inactive_nurses=inactive_nurses,
        
     )

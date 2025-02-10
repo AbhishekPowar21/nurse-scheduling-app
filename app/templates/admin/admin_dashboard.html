@@ -6,10 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       background-color: #f4f4f4;
       margin: 0;
       padding: 0;
@@ -18,7 +17,8 @@
     h1 {
       text-align: center;
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      font-size: 2rem;
     }
 
     .stats {
@@ -30,26 +30,150 @@
     .stat-card {
       background-color: #007bff;
       color: #fff;
-      padding: 20px;
-      border-radius: 10px;
+      padding: 25px;
+      border-radius: 8px;
       width: 30%;
       text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
     }
 
     .stat-card h3 {
       font-size: 24px;
+      margin-bottom: 15px;
     }
 
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Static histogram container */
     .chart-container {
       display: flex;
-      justify-content: center;
-      margin-top: 20px;
+      justify-content: space-around;
+      margin-top: 40px;
+      position: relative;
+      width: 100%;
+      margin-bottom: 40px;
     }
 
     .chart {
-      width: 700px;
-      height: 400px;
+      width: 50%;
       margin: 0 10px;
+      position: relative;
+      background-color: #ffffff;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      padding: 10px 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      background: linear-gradient(45deg, #f1f1f1, #ffffff);
+    }
+
+    /* Bar style */
+    .bar {
+      width: 15%;
+      background-color: #007bff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      color: #fff;
+      border-radius: 8px 8px 0 0;
+      transition: background-color 0.3s ease;
+      position: relative;
+    }
+
+    .bar p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .bar span {
+      font-size: 12px;
+      padding: 4px 8px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+    }
+
+    .bar:hover {
+      background-color: #0056b3;
+    }
+
+    .chart::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+    }
+
+    /* Position bar labels below the bars */
+    .bar-label {
+      position: absolute;
+      bottom: -35px;
+      width: 100%;
+      text-align: center;
+      font-size: 15px;
+      color: #333;
+    }
+
+    .axis-labels {
+      position: absolute;
+      bottom: -40px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .y-axis-labels {
+      position: absolute;
+      left: -30px;
+      top: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: space-between;
+      height: 100%;
+      font-size: 12px;
+      color: #333;
+    }
+
+    /* Title for the graph */
+    .chart-title {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 15px;
+      /* Adjust spacing between title and graph */
+    }
+
+    /* Space at the bottom of the chart */
+    .chart-container {
+      margin-bottom: 80px;
+    }
+
+    /* Add flexbox for the section headers */
+    .charts-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      margin-left: 130px;
+    }
+
+    .charts-header h3 {
+      font-size: 1.5rem;
+      color: #333;
+
+      width: 40%;
+      /* Ensures they take equal space */
+      margin: 0;
+      /* Remove default margin */
     }
   </style>
 </head>
@@ -71,65 +195,39 @@
       </div>
     </div>
 
-    <!-- Category Breakdown (Bar Chart) -->
-    <div class="chart-container">
-      <div class="chart">
-        <canvas id="categoryChart"></canvas>
-      </div>
+    <!-- Section for chart headers (Side by side) -->
+    <div class="charts-header">
+      <h3>Nurses department wise</h3>
+      <h3>Nurses category wise</h3>
     </div>
 
-    <!-- Pass data as a hidden element -->
-    <div id="categoryData" style="display: none;">
-      {{ category_breakdown | tojson }}
+    <!-- Static Category Breakdown (Histogram) -->
+    <div class="chart-container">
+      <!-- First Graph (General Category Breakdown) -->
+      <div class="chart">
+        {% for category, count in category_breakdown %}
+        <div class="bar" style="height: {{ count * 30 }}px;"> <!-- Adjusted height multiplier -->
+          <span>{{ count }}</span>
+          <div class="bar-label">{{ category }}</div> <!-- Category name below each bar -->
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Second Graph (Categorywise) -->
+      <div class="chart" style="margin-left: 100px;">
+        {% for category, count in category %}
+        <div class="bar" style="height: {{ count * 30 }}px;"> <!-- Adjusted height multiplier -->
+          <span>{{ count }}</span>
+          <div class="bar-label">{{ category }}</div> <!-- Category name below each bar -->
+        </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
   <script>
-    // Retrieve the data from the hidden div and parse it
-    var categoryBreakdown = JSON.parse(document.getElementById('categoryData').innerText);
-
-    // Extract categories and counts
-    var categories = categoryBreakdown.map(item => item[0]);  // Extract categories
-    var counts = categoryBreakdown.map(item => item[1]);  // Extract counts
-
-    // Set up the chart
-    var ctx = document.getElementById('categoryChart').getContext('2d');
-    var categoryChart = new Chart(ctx, {
-      type: 'bar',  // Bar chart type
-      data: {
-        labels: categories,  // X-axis labels (categories)
-        datasets: [{
-          label: 'Nurses by Category',
-          data: counts,  // Data for each category
-          backgroundColor: '#007bff',
-          borderColor: '#0056b3',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,  // Ensure the Y-axis starts at 0
-            ticks: {
-              stepSize: 1
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false  // Hide the default legend
-          },
-          tooltip: {
-            callbacks: {
-              label: function (tooltipItem) {
-                return tooltipItem.label + ': ' + tooltipItem.raw + ' nurses';  // Customize tooltip
-              }
-            }
-          }
-        }
-      }
-    });
+    // JavaScript for dynamic loading and interaction remains the same
+    // You can use the existing script for loading dynamic data and attaching form handlers
   </script>
 
 </body>
