@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Nurse Schedule and Shift Swap</title>
+  <style>
+    /* Fixed flash container so messages stay at the top of the screen */
+  .flash-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  /* Flash message styling with increased right padding */
+  .flash {
+    max-width: 400px;
+    margin: 10px auto;
+    padding: 10px 60px 10px 10px; /* increased right padding from 40px to 60px */
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .flash.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .flash.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  /* Close button for flash messages */
+  .close-flash {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+  }
+    
+    /* Shared styles for the form and table */
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    button[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .shift-entry {
+      background-color: #e0f7fa;
+      margin: 5px 0;
+      padding: 5px;
+    }
+    .shift-time {
+      font-weight: bold;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    /* Highlight swapped shifts */
+    .swapped {
+      background-color: #d4edda; /* Light green background */
+    }
+  </style>
+</head>
+<body>
+  <!-- Flash Messages (fixed to the top of the screen) -->
+  <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {{ message }}
+            <button type="button" class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <h1>Generated Nurse Schedule</h1>
+
+  <!-- Weekly Schedule Table -->
+  <div id="schedule-container" style="display: display_style;">
+    {% if schedule %}
+    <h2>Weekly Schedule</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Shift</th>
+          <th>Monday</th>
+          <th>Tuesday</th>
+          <th>Wednesday</th>
+          <th>Thursday</th>
+          <th>Friday</th>
+          <th>Saturday</th>
+          <th>Sunday</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for shift in ['8 AM to 4 PM', '4 PM to 12 AM', '12 AM to 8 AM'] %}
+        <tr>
+          <td class="shift-time">{{ shift }}</td>
+          {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+          <td>
+            {% for entry in schedule[day] %}
+            {% if entry.shift_end == shift %}
+            <div class="shift-entry">
+              <div class="shift-entry {% if entry.schedule_id|string in swapped_schedule_ids %}swapped{% endif %}">
+                <strong>{{ entry.nurse_name }} (ID: {{ entry.schedule_id }})</strong>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <!-- Shift Swap Request Form -->
+  <h2>Request Shift Swap</h2>
+  <form method="POST" action="{{ url_for('nurse.shift_swap') }}">
+    <label for="current_schedule_id">Your Schedule:</label>
+    <select name="current_schedule_id" id="current_schedule_id" required>
+      <option value="">Select your schedule</option>
+      {% for sched in my_schedules %}
+      <option value="{{ sched.schedule_id }}">
+        {{ sched.shift_day }} - {{ sched.shift_end }} (ID: {{ sched.schedule_id }})
+      </option>
+      {% endfor %}
+    </select>
+
+    <label for="desired_day">Desired Day (Only days after today):</label>
+    <select name="desired_day" id="desired_day" required>
+      <option value="">Select desired day</option>
+      {% for day in allowed_desired_days %}
+      <option value="{{ day }}">{{ day }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="desired_shift">Desired Shift:</label>
+    <select name="desired_shift" id="desired_shift" required>
+      <option value="">Select desired shift</option>
+      <option value="8 AM to 4 PM">8 AM to 4 PM</option>
+      <option value="4 PM to 12 AM">4 PM to 12 AM</option>
+      <option value="12 AM to 8 AM">12 AM to 8 AM</option>
+    </select>
+
+    <p><em>Note: Swap requests must comply with the no two consecutive shift rule.</em></p>
+    <button type="submit">Submit Swap Request</button>
+  </form>
+
+  <!-- Pending Shift Swap Requests -->
+  <h2>Your Pending Shift Swap Requests</h2>
+  {% if pending_requests %}
+  <table>
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>Your Schedule ID</th>
+        <th>Desired Schedule IDs</th>
+        <th>Status</th>
+        <th>Notification</th>
+        <th>Requested At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in pending_requests %}
+      <tr>
+        <td>{{ req.request_id }}</td>
+        <td>{{ req.current_schedule_id }}</td>
+        <td>{{ req.desired_schedule_id }}</td>
+        <td>{{ req.status }}</td>
+        <td>{{ req.notifications }}</td>
+        <td>{{ req.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No pending shift swap requests.</p>
+  {% endif %}
+</body>
+</html>

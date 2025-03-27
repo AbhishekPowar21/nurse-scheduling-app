@@ -27,7 +27,8 @@
       required>{{ admin_info[3] }}</textarea>
   </div>
 
-  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <button type="submit" class="btn btn-primary" onclick="alert('Changes are saved');">Save Changes</button>
+
 </form>
 
 <a href="{{ url_for('admin.admin_homepage') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>

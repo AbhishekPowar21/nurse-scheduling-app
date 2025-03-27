@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nurse Dashboard - Your Weekly Schedule</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .shift-entry {
+      background-color: #e0f7fa;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    .shift-time {
+      font-weight: bold;
+    }
+    /* Highlight swapped shifts */
+    .swapped {
+      background-color: #d4edda; /* Light green background */
+    }
+  </style>
+</head>
+<body>
+  <h1>Your Weekly Schedule</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Shift</th>
+        <th>Monday</th>
+        <th>Tuesday</th>
+        <th>Wednesday</th>
+        <th>Thursday</th>
+        <th>Friday</th>
+        <th>Saturday</th>
+        <th>Sunday</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for shift in ['8 AM to 4 PM', '4 PM to 12 AM', '12 AM to 8 AM'] %}
+      <tr>
+        <td class="shift-time">{{ shift }}</td>
+        {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+        <td>
+          {% for entry in schedule[day] %}
+            {% if entry.shift_end == shift %}
+              <div class="shift-entry {% if entry.schedule_id|string in swapped_schedule_ids %}swapped{% endif %}">
+                {{ entry.shift_start }} - {{ entry.shift_end }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

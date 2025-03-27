@@ -1,4 +1,4 @@
-import random
+import random, json
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -55,7 +55,7 @@ def send_email(email, subject, body):
 
     return True
 
-8
+
 # Function to generate OTP
 def generate_otp():
     return random.randint(100000, 999999)
@@ -169,13 +169,10 @@ def check_email():
 
 
 # Login route
+# In auth.py
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    print(f"Before login check, session: {session}")  # Debugging session before login
-    # if 'user_id' in session:
-    #     flash('You are already logged in!', 'info')
-    #     return redirect(url_for('admin.admin_homepage'))  # Redirect if already logged in
-
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -184,26 +181,107 @@ def login():
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        # Retrieve user from the database
+        # Check hospital_admin table for matching email
         cursor.execute('SELECT * FROM hospital_admin WHERE email = %s', (email,))
         user = cursor.fetchone()
 
-        # Validate user credentials
-        if user and user[3] == password:  # Compare passwords directly (no hashing)
-            # Clear any existing session data (for example, in case the user is logging in again)
-            session.clear()  # Clears all session data
-            session['user_id'] = user[0]  # Set session data
+        if user and user[3] == password:  # Assuming the password is at index 3
+            session.clear()  # Clear existing session data
+            session['user_id'] = user[0]  # Hospital admin ID
             session['user_name'] = user[1]
             session['hospital_name'] = user[4]
-            session.permanent = True  # Make the session permanent (to apply the 20-minute expiry)
-            return redirect(url_for('admin.admin_homepage'))  # Redirect to admin homepage
 
+            # Query notifications count from shift_swap_requests table for NurseAccepted status
+            cursor.execute("SELECT COUNT(*) FROM shift_swap_requests WHERE status = 'NurseAccepted'")
+            notification_count = cursor.fetchone()[0]
+            session['notification_count'] = notification_count
+
+            session.permanent = True  # Makes the session permanent (e.g., 20-minute expiry)
+            cursor.close()
+            connection.close()
+            return redirect(url_for('admin.admin_homepage'))
+
+        # If not found in hospital_admin, check the nurses table
+        cursor.execute('SELECT * FROM nurses WHERE email = %s', (email,))
+        nurse = cursor.fetchone()
+
+        if nurse and nurse[4] == password:  # Adjust the index if the nurses table structure differs
+            session.clear()  # Clear existing session data
+            session['user_id'] = nurse[0]       # Nurse ID
+            session['nurse_name'] = nurse[2]
+            nurse_id = session['user_id']
+            conn = get_db_connection()
+            cur = conn.cursor()
+
+            cur.execute("SELECT admin_id FROM nurses WHERE nurse_id = %s", (nurse_id,))
+            admin_row = cur.fetchone()
+            if not admin_row:
+                flash("Nurse record not found.", "error")
+                return redirect(url_for('auth.login'))
+
+            # Set admin_id in the session
+            admin_id = admin_row[0]
+            session['admin_id'] = admin_id
+            print(admin_id)
+
+            # Query the hospital_admin table to get the hospital_name for this admin_id
+            cur.execute("SELECT hospital_name FROM hospital_admin WHERE admin_id = %s", (admin_id,))
+            hospital_row = cur.fetchone()
+            session['hospital_name'] = hospital_row[0]
+
+            # Retrieve all schedule IDs for this nurse from the schedules table
+            cursor.execute("SELECT schedule_id FROM schedules WHERE nurse_id = %s", (nurse[0],))
+            nurse_schedule_rows = cursor.fetchall()
+            current_schedule_ids = [row[0] for row in nurse_schedule_rows]
+
+            # Query all pending shift swap requests
+            cursor.execute("""
+                SELECT request_id, requester_nurse_id, current_schedule_id, desired_schedule_id, status, notifications, created_at 
+                FROM shift_swap_requests 
+                WHERE status = 'Pending' 
+                ORDER BY created_at DESC
+            """)
+            all_requests = cursor.fetchall()
+
+            # Loop through requests and decode the JSON list for desired schedule IDs
+            notifications = []
+            for row in all_requests:
+                req = {
+                    'request_id': row[0],
+                    'requester_nurse_id': row[1],
+                    'current_schedule_id': row[2],
+                    'desired_schedule_id': row[3],  # This is a JSON string containing eligible schedule ids
+                    'status': row[4],
+                    'notifications': row[5],
+                    'created_at': row[6]
+                }
+                # Decode the JSON list
+                desired_schedule_ids = json.loads(req['desired_schedule_id'])
+                # If any of the nurse's schedule ids appear in the eligible list, add the request to notifications.
+                if any(sched_id in desired_schedule_ids for sched_id in current_schedule_ids):
+                    notifications.append(req)
+
+            # Set the notification count in session based on the filtered notifications
+            notification_count = len(notifications)
+            session['notification_count'] = notification_count
+            print("Notification Count:", notification_count)
+
+            session.permanent = True
+            cursor.close()
+            connection.close()
+            return redirect(url_for('nurse.nurse_homepage'))
+        
+        # If no matching user or nurse is found, flash an error
         flash('Invalid email or password!', 'error')
         cursor.close()
         connection.close()
         return redirect(url_for('auth.login'))
 
+
     return render_template('auth/login.html')
+
+
+
 
 
 # Logout route

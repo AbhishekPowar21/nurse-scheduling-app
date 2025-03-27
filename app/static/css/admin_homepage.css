@@ -233,3 +233,26 @@ body {
 .flash-message.error {
   background-color: #D32F2F; /* Vivid red for flash error messages */
 }
+
+/* admin_homepage.css */
+.notification-dot {
+  position: absolute;
+  top: 8px;       /* adjust based on your layout */
+  right: 60px;     /* adjust based on your layout */
+  width: 10px;
+  height: 10px;
+  background: red;
+  border-radius: 50%;
+  border: 1px solid #fff; /* Optional: a white border for contrast */
+}
+
+.notification-dot-sidebar {
+  position: absolute;
+  top: 178px;
+  left: 54px;
+  width: 10px;
+  height: 10px;
+  background: red;
+  border-radius: 50%;
+  border: 1px solid #fff;
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swap Request Notifications</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .action-buttons form {
+      display: inline;
+    }
+    .action-buttons button {
+      margin: 2px;
+      padding: 6px 10px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .action-buttons button:hover {
+      background-color: #0056b3;
+    }
+    /* Flash messages styling */
+    #flash-messages {
+      margin: 20px auto;
+      width: 80%;
+    }
+    .flash-message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .flash-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .flash-message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .flash-message.info {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+  </style>
+</head>
+<body>
+  <h1>Swap Request Notifications</h1>
+  
+  <!-- Flash messages block -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  {% if notifications %}
+  <table>
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>Requester Nurse ID</th>
+        <th>Your Schedule ID</th>
+        <th>Status</th>
+        <th>Notification</th>
+        <th>Requested At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for notification in notifications %}
+      <tr>
+        <td>{{ notification.request_id }}</td>
+        <td>{{ notification.requester_nurse_id }}</td>
+        <td>{{ notification.current_schedule_id }}</td>
+        <td>{{ notification.status }}</td>
+        <td>{{ notification.notifications }}</td>
+        <td>{{ notification.created_at }}</td>
+        <td class="action-buttons">
+          {% if notification.status in ['NurseAccepted', 'AdminApproved', 'AdminRejected'] %}
+            <span>Nurse Accepted</span>
+          {% else %}
+            <form method="POST" action="/nurse/respond_swap">
+              <input type="hidden" name="request_id" value="{{ notification.request_id }}">
+              <input type="hidden" name="swap_action" value="accept">
+              <button type="submit">Accept</button>
+            </form>
+          {% endif %}
+        </td>        
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No swap request notifications available.</p>
+  {% endif %}
+</body>
+</html>

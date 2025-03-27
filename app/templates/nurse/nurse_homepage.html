@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,13 +9,13 @@
 </head>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  <div id="flash-messages">
-    {% for category, message in messages %}
-    <div class="flash-message {{ category }}">{{ message }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
+{% if messages %}
+<div id="flash-messages">
+  {% for category, message in messages %}
+  <div class="flash-message {{ category }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endwith %}
 
 <body>
@@ -49,18 +48,24 @@
           </a>
         </li>
 
-        <!-- Manage Nurse -->
+        <!-- Shift Swap -->
         <li class="item">
-          <a href="#" class="nav_link" onclick="loadContent('manageNurse')">
+          <a href="#" class="nav_link" onclick="loadContent('ShiftSwap')">
             <span class="navlink_icon"><i class="bx bx-user"></i></span>
-            <span class="navlink">Manage Nurse</span>
+            <span class="navlink">Shift swap</span>
           </a>
         </li>
 
+        <!-- Notifications with Dot -->
         <li class="item">
-          <a href="#" class="nav_link" onclick="loadContent('schedule')">
+          <a href="#" class="nav_link" onclick="loadContent('Notifications')">
             <span class="navlink_icon"><i class="bx bx-calendar"></i></span>
-            <span class="navlink">Schedule</span>
+            <span class="navlink">Notifications</span>
+            {% if notification_count > 0 %}
+              <span class="notification-dot-sidebar"></span>
+            {% else %}
+              <span class="notification-dot-sidebar" style="display:none;"></span>
+            {% endif %}
           </a>
         </li>
 
@@ -96,7 +101,7 @@
     const notificationsIcon = document.getElementById("Notifications");
     notificationsIcon.addEventListener("click", () => {
       const contentArea = document.getElementById("contentArea");
-      fetch('/admin/swap_requests')
+      fetch('/nurse/notifications')
         .then(response => {
           if (!response.ok) throw new Error('Failed to load swap requests');
           return response.text();
@@ -115,8 +120,7 @@
       const contentArea = document.getElementById("contentArea");
 
       if (page === "dashboard") {
-        // Fetch Dashboard content dynamically
-        fetch('/admin/admin_dashboard')
+        fetch('/nurse/nurse_dashboard')
           .then(response => {
             if (!response.ok) throw new Error('Failed to load Dashboard content');
             return response.text();
@@ -129,10 +133,11 @@
             console.error(error);
             contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
           });
-      } else if (page === "manageNurse") {
-        fetch('/admin/manage_nurses')
+      }
+      else if (page === "ShiftSwap") {
+        fetch('/nurse/shift_swap')
           .then(response => {
-            if (!response.ok) throw new Error('Failed to load Manage Nurse content');
+            if (!response.ok) throw new Error('Failed to load Shift Swap content');
             return response.text();
           })
           .then(html => {
@@ -143,10 +148,11 @@
             console.error(error);
             contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
           });
-      } else if (page === "schedule") {
-        fetch('/admin/generate_schedule')
+      }
+      else if (page === "Notifications") {
+        fetch('/nurse/notifications')
           .then(response => {
-            if (!response.ok) throw new Error('Failed to load Schedule content');
+            if (!response.ok) throw new Error('Failed to load Notifications content');
             return response.text();
           })
           .then(html => {
@@ -157,8 +163,9 @@
             console.error(error);
             contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
           });
-      } else if (page === "settings") {
-        fetch('/admin/edit_admin_info')
+      }
+      else if (page === "settings") {
+        fetch('/nurse/edit_nurse_info')
           .then(response => {
             if (!response.ok) throw new Error('Failed to load Settings content');
             return response.text();
@@ -171,14 +178,15 @@
             console.error(error);
             contentArea.innerHTML = `<p>Error loading page. Please try again later.</p>`;
           });
-      } else {
+      }
+      else {
         contentArea.innerHTML = `<h1>${page.charAt(0).toUpperCase() + page.slice(1)}</h1><p>This is the ${page} page.</p>`;
       }
     }
 
     // Function to update the notification dot in the navbar
     function updateNotificationDot() {
-      fetch('/admin/notification_count')
+      fetch('/nurse/notification_count')
         .then(response => {
           if (!response.ok) throw new Error('Failed to fetch notification count');
           return response.json();
@@ -190,6 +198,12 @@
           } else {
             notificationDot.style.display = 'none';
           }
+          const notificationDotSidebar = document.querySelector('.notification-dot-sidebar');
+          if (data.notification_count > 0) {
+            notificationDotSidebar.style.display = 'block';
+          } else {
+            notificationDotSidebar.style.display = 'none';
+          }
         })
         .catch(error => console.error('Error fetching notification count:', error));
     }
@@ -199,7 +213,6 @@
       forms.forEach(form => {
         form.addEventListener("submit", event => {
           event.preventDefault();
-
           const action = form.action;
           const method = form.method;
           const formData = new FormData(form);
@@ -215,7 +228,7 @@
             .then(html => {
               document.getElementById("contentArea").innerHTML = html;
               attachFormHandlers();
-              updateNotificationDot(); // Update the notification dot after form submission
+              updateNotificationDot();
             })
             .catch(error => console.error('Error:', error));
         });
@@ -226,5 +239,4 @@
   </script>
 
 </body>
-
 </html>

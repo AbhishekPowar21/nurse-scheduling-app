@@ -1,0 +1,139 @@
+{% block content %}
+<h2>Edit Your Information</h2>
+
+<form method="POST" action="{{ url_for('nurse.edit_nurse_info') }}">
+  <div class="form-group">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" class="form-control" value="{{ nurse_info[0] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" class="form-control" value="{{ nurse_info[1] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Phone:</label>
+    <input type="text" id="phone" name="phone" class="form-control" value="{{ nurse_info[2] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="shift_preference">Shift Preference:</label>
+    <select id="shift_preference" name="shift_preference" class="form-control" required>
+      <option value="Morning" {% if nurse_info[3] == 'Morning' %}selected{% endif %}>Morning</option>
+      <option value="Evening" {% if nurse_info[3] == 'Evening' %}selected{% endif %}>Evening</option>
+      <option value="Night" {% if nurse_info[3] == 'Night' %}selected{% endif %}>Night</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="sleep_hours">Sleep Hours:</label>
+    <input type="number" id="sleep_hours" name="sleep_hours" class="form-control" value="{{ nurse_info[4] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="category">Category:</label>
+    <select id="category" name="category" class="form-control" required>
+      <option value="Senior" {% if nurse_info[5] == 'Senior' %}selected{% endif %}>Senior</option>
+      <option value="Junior" {% if nurse_info[5] == 'Junior' %}selected{% endif %}>Junior</option>
+      <option value="Head" {% if nurse_info[5] == 'Head' %}selected{% endif %}>Head</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="department">Department:</label>
+    <input type="text" id="department" name="department" class="form-control" value="{{ nurse_info[6] }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="status">Status:</label>
+    <select id="status" name="status" class="form-control" required>
+      <option value="Active" {% if nurse_info[7] == 'Active' %}selected{% endif %}>Active</option>
+      <option value="Inactive" {% if nurse_info[7] == 'Inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary" onclick="alert('Changes are saved');">Save Changes</button>
+</form>
+
+<a href="{{ url_for('nurse.nurse_homepage') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+
+<!-- Custom CSS for Better Styling -->
+<style>
+  body {
+    background-color: #f4f7fa;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h2 {
+    text-align: center;
+    margin-top: 30px;
+    color: #333;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    text-decoration: none;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+
+  .mt-3 {
+    margin-top: 20px;
+  }
+
+  .form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+{% endblock %}

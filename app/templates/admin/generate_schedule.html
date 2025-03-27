@@ -1,90 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generated Nurse Schedule</title>
   <style>
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    button[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 20px;
     }
-
     th,
     td {
       padding: 8px 12px;
       text-align: center;
       border: 1px solid #ddd;
     }
-
     th {
       background-color: #f4f4f4;
     }
-
     .shift-entry {
       background-color: #e0f7fa;
       margin: 5px 0;
       padding: 5px;
     }
-
     .shift-time {
       font-weight: bold;
     }
-
     button {
       background-color: #4CAF50;
-      /* Green background */
       color: white;
-      /* White text */
       border: none;
-      /* Remove border */
       padding: 10px 20px;
-      /* Padding around the text */
       text-align: center;
-      /* Center the text */
       text-decoration: none;
-      /* Remove underline */
       display: inline-block;
-      /* Align inline */
       font-size: 16px;
-      /* Font size */
       margin: 4px 2px;
-      /* Margin around the button */
       cursor: pointer;
-      /* Pointer cursor on hover */
       border-radius: 8px;
-      /* Rounded corners */
       transition: background-color 0.3s ease;
-      /* Smooth background color change on hover */
     }
-
     button:hover {
       background-color: #45a049;
-      /* Darker green when hovering */
+    }
+    #flash-messages {
+      margin: 20px auto;
+      width: 80%;
+    }
+    .flash-message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .flash-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .flash-message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .flash-message.info {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+    /* Highlighting style for swapped schedule entries */
+    .highlighted {
+      background-color: #ffff99; /* Light yellow */
     }
   </style>
 </head>
-
 <body>
   <h1>Generated Nurse Schedule</h1>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  <div id="flash-messages">
-    {% for category, message in messages %}
-    {# Skip any flash messages that are warnings #}
-    {% if category != 'warning' %}
-    <div class="flash-message {{ category }}">
-      <span>{{ message }}</span>
-      {% if category == 'success' %}
-      <button class="close" onclick="this.parentElement.style.display='none';">&times;</button>
-      {% endif %}
-    </div>
+    {% if messages %}
+      <div id="flash-messages">
+        {% for category, message in messages %}
+          {% if category != 'warning' %}
+            <div class="flash-message {{ category }}">
+              <span>{{ message }}</span>
+              {% if category == 'success' %}
+                <button class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
     {% endif %}
-    {% endfor %}
-  </div>
-  {% endif %}
   {% endwith %}
 
   <!-- Form to generate schedule (now includes an input for nurses per shift) -->
@@ -95,41 +138,47 @@
   </form>
 
   <!-- Schedule container (shown if there is schedule data) -->
-  <div id="schedule-container" style="display:  display_style ;">
+  <div id="schedule-container">
     {% if schedule %}
-    <h2>Weekly Schedule</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Shift</th>
-          <th>Monday</th>
-          <th>Tuesday</th>
-          <th>Wednesday</th>
-          <th>Thursday</th>
-          <th>Friday</th>
-          <th>Saturday</th>
-          <th>Sunday</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for shift in ['8 AM to 4 PM', '4 PM to 12 AM', '12 AM to 8 AM'] %}
-        <tr>
-          <td class="shift-time">{{ shift }}</td>
-          {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
-          <td>
-            {% for entry in schedule[day] %}
-            {% if entry.shift_end == shift %}
-            <div class="shift-entry">
-              <strong>{{ entry.nurse_name }}</strong><br>
-            </div>
-            {% endif %}
+      <h2>Weekly Schedule</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Shift</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+            <th>Saturday</th>
+            <th>Sunday</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for shift in ['8 AM to 4 PM', '4 PM to 12 AM', '12 AM to 8 AM'] %}
+          <tr>
+            <td class="shift-time">{{ shift }}</td>
+            {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+              <td>
+                {% for entry in schedule[day] %}
+                  {% if entry.shift_end == shift %}
+                    {% if entry.schedule_id|string in swapped_schedule_ids %}
+                      <div class="shift-entry highlighted">
+                        <strong>{{ entry.nurse_name }} ({{ entry.schedule_id }})</strong>
+                      </div>
+                    {% else %}
+                      <div class="shift-entry">
+                        <strong>{{ entry.nurse_name }} ({{ entry.schedule_id }})</strong>
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+              </td>
             {% endfor %}
-          </td>
+          </tr>
           {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
     {% endif %}
   </div>
 
@@ -141,5 +190,4 @@
     }
   </script>
 </body>
-
 </html>

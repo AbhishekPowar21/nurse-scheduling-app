@@ -1,6 +1,6 @@
 from flask import Flask
 from app.config import Config
-from app.routes import auth_bp, admin_bp, main_bp  # Import the blueprints
+from app.routes import auth_bp, admin_bp, main_bp, nurse_bp  # Import the blueprints
 
 def create_app():
     # Create and configure the Flask app
@@ -11,5 +11,6 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(main_bp)
+    app.register_blueprint(nurse_bp, url_prefix='/nurse')
 
     return app
